@@ -97,11 +97,6 @@ export default function SIIncrements({ currentUser }: Props) {
 
   const isStaff = currentUser?.role === 'Staff'
 
-  useEffect(() => {
-    if (isStaff) {
-      setStatusFilter('Pending')
-    }
-  }, [isStaff])
 
   const handleOpenNewForm = () => {
     setEditingId(null)
@@ -202,9 +197,17 @@ export default function SIIncrements({ currentUser }: Props) {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
-              {(isStaff ? ['Pending'] : ['All', 'Pending', 'Approved', 'Rejected']).map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
+              {isStaff ? (
+                <>
+                  <option value="All" hidden>All</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                </>
+              ) : (
+                ['All', 'Pending', 'Approved', 'Rejected'].map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))
+              )}
             </select>
           </div>
           <button

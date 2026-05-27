@@ -20,10 +20,6 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
 
   const isStaff = currentUser?.role === 'Staff'
 
-  useEffect(() => {
-    if (isStaff) setStatusFilter('Pending')
-  }, [isStaff])
-
   // Helper function to get current date and time in Tanzania timezone (EAT - UTC+3)
   const getTanzaniaDateTime = (): Date => {
     const now = new Date()
@@ -168,9 +164,17 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
-              {(isStaff ? ['Pending'] : ['All', 'Pending', 'Approved', 'Rejected']).map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
+              {isStaff ? (
+                <>
+                  <option value="All" hidden>All</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                </>
+              ) : (
+                ['All', 'Pending', 'Approved', 'Rejected'].map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))
+              )}
             </select>
           </div>
           <button
