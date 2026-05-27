@@ -194,6 +194,49 @@
   padding: 2rem !important;
 }
 
+@media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .search-box input,
+  .search-box select {
+    width: 100%;
+  }
+
+  .form-card {
+    padding: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .icon-btn {
+    margin-right: 0;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .form-card {
     background: #2a2a2a;
