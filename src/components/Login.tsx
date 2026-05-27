@@ -24,6 +24,9 @@ export default function Login({ onLogin }: { onLogin: (userId: string) => void }
   const [loading, setLoading] = useState(false)
   const authenticate = useMutation((api as any).users.authenticateUser)
 
+  const avatarInitials = getInitials(username)
+  const avatarColor = getAvatarColor(username || 'user')
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -55,6 +58,15 @@ export default function Login({ onLogin }: { onLogin: (userId: string) => void }
             <p style={{ margin: 0, fontSize: 12, color: '#888' }}>Secure Access</p>
           </div>
         </div>
+
+        <div className="avatar-preview" style={{ '--avatar-bg': avatarColor } as React.CSSProperties}>
+          <div className="avatar-circle">{avatarInitials}</div>
+          <div>
+            <div className="avatar-title">Your profile</div>
+            <div className="avatar-sub">Enter your username for a custom avatar</div>
+          </div>
+        </div>
+
         <p className="login-sub">Sign in to your dashboard</p>
 
         <form className="login-form" onSubmit={handleSubmit}>
