@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { TicketCancellation } from '../types'
@@ -17,6 +17,12 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
   const updateTicket = useMutation(api.ticketCancellation.updateTicketCancellation)
   const deleteTicket = useMutation(api.ticketCancellation.deleteTicketCancellation)
   const [editingId, setEditingId] = useState<string | null>(null)
+
+  const isStaff = currentUser?.role === 'Staff'
+
+  useEffect(() => {
+    if (isStaff) setStatusFilter('Pending')
+  }, [isStaff])
 
   // Helper function to get current date and time in Tanzania timezone (EAT - UTC+3)
   const getTanzaniaDateTime = (): Date => {
@@ -162,10 +168,9 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
-              <option value="All">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
+              {(isStaff ? ['Pending'] : ['All', 'Pending', 'Approved', 'Rejected']).map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
             </select>
           </div>
           <button
@@ -268,9 +273,9 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                   })
                 }
               >
-                <option>Pending</option>
-                <option>Approved</option>
-                <option>Rejected</option>
+                {(isStaff ? ['Pending'] : ['Pending', 'Approved', 'Rejected']).map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
               </select>
             </div>
             <div className="form-group full-width">
