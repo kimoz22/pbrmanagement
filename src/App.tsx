@@ -69,7 +69,7 @@ function App() {
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
           {currentUserId && currentUser ? (
             <>
-              <div style={{ color: 'white' }}>
+              <div style={{ color: '#111', fontWeight: 600 }}>
                 Logged in: {currentUser.username} ({currentUser.role})
               </div>
               <button className="btn-secondary" onClick={handleLogout}>Logout</button>

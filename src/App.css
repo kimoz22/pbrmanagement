@@ -137,6 +137,18 @@
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+  color: #111;
+}
+
+.main-content h1,
+.main-content h2,
+.main-content h3,
+.main-content p,
+.main-content label,
+.main-content td,
+.main-content th,
+.main-content span {
+  color: #111;
 }
 
 .settings-panel {

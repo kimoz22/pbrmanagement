@@ -52,18 +52,18 @@ export default function Login({ onLogin }: { onLogin: (userId: string) => void }
     <div className="login-root">
       <div className="login-card">
         <div className="login-brand">
-          <div className="logo">🔐</div>
+          <div className="logo">👤</div>
           <div>
-            <h1>PBR Management</h1>
-            <p style={{ margin: 0, fontSize: 12, color: '#888' }}>Secure Access</p>
+            <h1>Welcome to PBR Management</h1>
+            <p style={{ margin: 0, fontSize: 12, color: '#444' }}>Enter your credentials</p>
           </div>
         </div>
 
         <div className="avatar-preview" style={{ '--avatar-bg': avatarColor } as React.CSSProperties}>
           <div className="avatar-circle">{avatarInitials}</div>
           <div>
-            <div className="avatar-title">Your profile</div>
-            <div className="avatar-sub">Enter your username for a custom avatar</div>
+            <div className="avatar-title">User login</div>
+            <div className="avatar-sub">Your profile initials preview</div>
           </div>
         </div>
 
