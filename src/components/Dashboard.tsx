@@ -13,41 +13,68 @@ export default function Dashboard() {
   const siIncrements = useQuery(api.siIncrements.listSIIncrements)
   const ticketCancellations = useQuery(api.ticketCancellation.listTicketCancellations)
 
-  // Group requests by hour
+  const getTodayRange = () => {
+    const now = new Date()
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Africa/Dar_es_Salaam',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour12: false,
+    })
+    const parts = formatter.formatToParts(now)
+    const year = parseInt(parts.find((p) => p.type === 'year')?.value || '2026')
+    const month = parseInt(parts.find((p) => p.type === 'month')?.value || '1') - 1
+    const day = parseInt(parts.find((p) => p.type === 'day')?.value || '1')
+
+    const startOfDay = new Date(year, month, day, 0, 0, 0).getTime()
+    const endOfDay = new Date(year, month, day, 23, 59, 59).getTime()
+    return { start: startOfDay, end: endOfDay }
+  }
+
   const getHourlyCounts = (): HourlyCount[] => {
     const hourlyData: Record<number, HourlyCount> = {}
+    const todayRange = getTodayRange()
 
     // Initialize hours 0-23
     for (let i = 0; i < 24; i++) {
       hourlyData[i] = { hour: i, siIncrements: 0, ticketCancellations: 0, total: 0 }
     }
 
-    // Count SI Increments by hour
-    if (siIncrements) {
-      siIncrements.forEach((item: any) => {
-        const date = new Date(item.requestedDate)
-        const hour = date.getHours()
-        hourlyData[hour].siIncrements += 1
-        hourlyData[hour].total += 1
-      })
-    }
+    const todaysSIIncrements = (siIncrements || []).filter((item: any) => {
+      const timestamp = typeof item.requestedDate === 'number'
+        ? item.requestedDate
+        : new Date(item.requestedDate).getTime()
+      return timestamp >= todayRange.start && timestamp <= todayRange.end
+    })
 
-    // Count Ticket Cancellations by hour
-    if (ticketCancellations) {
-      ticketCancellations.forEach((item: any) => {
-        const date = new Date(item.requestedDate)
-        const hour = date.getHours()
-        hourlyData[hour].ticketCancellations += 1
-        hourlyData[hour].total += 1
-      })
-    }
+    const todaysTicketCancellations = (ticketCancellations || []).filter((item: any) => {
+      const timestamp = typeof item.requestedDate === 'number'
+        ? item.requestedDate
+        : new Date(item.requestedDate).getTime()
+      return timestamp >= todayRange.start && timestamp <= todayRange.end
+    })
+
+    todaysSIIncrements.forEach((item: any) => {
+      const date = new Date(item.requestedDate)
+      const hour = date.getHours()
+      hourlyData[hour].siIncrements += 1
+      hourlyData[hour].total += 1
+    })
+
+    todaysTicketCancellations.forEach((item: any) => {
+      const date = new Date(item.requestedDate)
+      const hour = date.getHours()
+      hourlyData[hour].ticketCancellations += 1
+      hourlyData[hour].total += 1
+    })
 
     return Object.values(hourlyData).sort((a, b) => a.hour - b.hour)
   }
 
   const hourlyData = getHourlyCounts()
-  const totalSIIncrements = (siIncrements || []).length
-  const totalTicketCancellations = (ticketCancellations || []).length
+  const totalSIIncrements = hourlyData.reduce((sum, row) => sum + row.siIncrements, 0)
+  const totalTicketCancellations = hourlyData.reduce((sum, row) => sum + row.ticketCancellations, 0)
   const grandTotal = totalSIIncrements + totalTicketCancellations
 
   const getHourLabel = (hour: number): string => {
