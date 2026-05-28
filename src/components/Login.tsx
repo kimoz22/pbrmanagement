@@ -3,18 +3,6 @@ import { useMutation } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import './Login.css'
 
-const getInitials = (username: string): string => {
-  return username
-    .split(/\s+/)
-    .map((part) => part[0]?.toUpperCase())
-    .join('') || '?'
-}
-
-const getAvatarColor = (username: string): string => {
-  const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#43e97b', '#fa709a', '#fee140']
-  const hash = username.charCodeAt(0) + username.length
-  return colors[hash % colors.length]
-}
 
 export default function Login({ onLogin }: { onLogin: (userId: string) => void }) {
   const [username, setUsername] = useState('')
@@ -23,9 +11,6 @@ export default function Login({ onLogin }: { onLogin: (userId: string) => void }
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const authenticate = useMutation((api as any).users.authenticateUser)
-
-  const avatarInitials = getInitials(username)
-  const avatarColor = getAvatarColor(username || 'user')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,19 +40,8 @@ export default function Login({ onLogin }: { onLogin: (userId: string) => void }
           <div className="logo">👤</div>
           <div>
             <h1>Welcome to PBR Management</h1>
-            <p style={{ margin: 0, fontSize: 12, color: '#444' }}>Enter your credentials</p>
           </div>
         </div>
-
-        <div className="avatar-preview" style={{ '--avatar-bg': avatarColor } as React.CSSProperties}>
-          <div className="avatar-circle">{avatarInitials}</div>
-          <div>
-            <div className="avatar-title">User login</div>
-            <div className="avatar-sub">Your profile initials preview</div>
-          </div>
-        </div>
-
-        <p className="login-sub">Sign in to your dashboard</p>
 
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="input-group">

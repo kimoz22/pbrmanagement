@@ -11,6 +11,8 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
   })
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
 
   const tickets = useQuery(api.ticketCancellation.listTicketCancellations)
   const createTicket = useMutation(api.ticketCancellation.createTicketCancellation)
@@ -19,6 +21,19 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
   const [editingId, setEditingId] = useState<string | null>(null)
 
   const isStaff = currentUser?.role === 'Staff'
+
+  const getDateTimestamp = (dateString: string, endOfDay = false): number | null => {
+    if (!dateString) return null
+    const [year, month, day] = dateString.split('-').map(Number)
+    return new Date(
+      year,
+      month - 1,
+      day,
+      endOfDay ? 23 : 0,
+      endOfDay ? 59 : 0,
+      endOfDay ? 59 : 0,
+    ).getTime()
+  }
 
   // Helper function to get current date and time in Tanzania timezone (EAT - UTC+3)
   const getTanzaniaDateTime = (): Date => {
@@ -41,30 +56,6 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
     const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0')
     const second = parseInt(parts.find(p => p.type === 'second')?.value || '0')
     return new Date(year, month, day, hour, minute, second)
-  }
-
-  const getCurrentDateRange = () => {
-    const now = new Date()
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Africa/Dar_es_Salaam',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour12: false,
-    })
-    const parts = formatter.formatToParts(now)
-    const year = parseInt(parts.find((p) => p.type === 'year')?.value || '2026')
-    const month = parseInt(parts.find((p) => p.type === 'month')?.value || '1') - 1
-    const day = parseInt(parts.find((p) => p.type === 'day')?.value || '1')
-    
-    const startOfDay = new Date(year, month, day, 0, 0, 0)
-    const endOfDay = new Date(year, month, day, 23, 59, 59)
-    return { start: startOfDay.getTime(), end: endOfDay.getTime() }
-  }
-
-  const isCurrentDate = (timestamp: number): boolean => {
-    const range = getCurrentDateRange()
-    return timestamp >= range.start && timestamp <= range.end
   }
 
   const handleOpenNewForm = () => {
@@ -145,8 +136,12 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
     const matchesSearch = !q || [item.requestee, item.tpmNo, item.retailerID, item.customerNo]
       .some((f) => (f || '').toString().toLowerCase().includes(q))
     const matchesStatus = statusFilter === 'All' || item.status === statusFilter
-    const isToday = isCurrentDate(item.requestedDate)
-    return matchesSearch && matchesStatus && isToday
+    const fromTimestamp = getDateTimestamp(fromDate)
+    const toTimestamp = getDateTimestamp(toDate, true)
+    const matchesDateRange =
+      (!fromTimestamp || item.requestedDate >= fromTimestamp) &&
+      (!toTimestamp || item.requestedDate <= toTimestamp)
+    return matchesSearch && matchesStatus && matchesDateRange
   })
 
   return (
@@ -162,6 +157,18 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
               placeholder="Search requestee, TPM, retailer or customer"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              title="From date"
+            />
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              title="To date"
             />
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
               {isStaff ? (
