@@ -4,6 +4,22 @@ import { api } from '../../convex/_generated/api'
 import { TicketCancellation } from '../types'
 import './TicketCancellation.css'
 
+const getCurrentDateValue = (): string => {
+  const now = new Date()
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Africa/Dar_es_Salaam',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour12: false,
+  })
+  const parts = formatter.formatToParts(now)
+  const year = parts.find((p) => p.type === 'year')?.value || '2026'
+  const month = parts.find((p) => p.type === 'month')?.value || '01'
+  const day = parts.find((p) => p.type === 'day')?.value || '01'
+  return `${year}-${month}-${day}`
+}
+
 export default function TicketCancellationComponent({ currentUser }: { currentUser?: any }) {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [formData, setFormData] = useState<Partial<TicketCancellation>>({
@@ -11,8 +27,8 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
   })
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All')
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
+  const [fromDate, setFromDate] = useState(getCurrentDateValue())
+  const [toDate, setToDate] = useState(getCurrentDateValue())
 
   const tickets = useQuery(api.ticketCancellation.listTicketCancellations)
   const createTicket = useMutation(api.ticketCancellation.createTicketCancellation)
@@ -24,15 +40,8 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
 
   const getDateTimestamp = (dateString: string, endOfDay = false): number | null => {
     if (!dateString) return null
-    const [year, month, day] = dateString.split('-').map(Number)
-    return new Date(
-      year,
-      month - 1,
-      day,
-      endOfDay ? 23 : 0,
-      endOfDay ? 59 : 0,
-      endOfDay ? 59 : 0,
-    ).getTime()
+    const time = endOfDay ? '23:59:59' : '00:00:00'
+    return new Date(`${dateString}T${time}+03:00`).getTime()
   }
 
   // Helper function to get current date and time in Tanzania timezone (EAT - UTC+3)

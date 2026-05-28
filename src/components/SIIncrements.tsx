@@ -4,6 +4,22 @@ import { api } from '../../convex/_generated/api'
 import { SIIncrement } from '../types'
 import './SIIncrements.css'
 
+const getCurrentDateValue = (): string => {
+  const now = new Date()
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Africa/Dar_es_Salaam',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour12: false,
+  })
+  const parts = formatter.formatToParts(now)
+  const year = parts.find((p) => p.type === 'year')?.value || '2026'
+  const month = parts.find((p) => p.type === 'month')?.value || '01'
+  const day = parts.find((p) => p.type === 'day')?.value || '01'
+  return `${year}-${month}-${day}`
+}
+
 type Props = { currentUser?: any }
 
 export default function SIIncrements({ currentUser }: Props) {
@@ -17,8 +33,8 @@ export default function SIIncrements({ currentUser }: Props) {
   const [shopDropdownOpen, setShopDropdownOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All')
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
+  const [fromDate, setFromDate] = useState(getCurrentDateValue())
+  const [toDate, setToDate] = useState(getCurrentDateValue())
 
   const siIncrements = useQuery(api.siIncrements.listSIIncrements)
   const shopNames = useQuery(api.shopNames.listShopNames)
@@ -77,15 +93,8 @@ export default function SIIncrements({ currentUser }: Props) {
 
   const getDateTimestamp = (dateString: string, endOfDay = false): number | null => {
     if (!dateString) return null
-    const [year, month, day] = dateString.split('-').map(Number)
-    return new Date(
-      year,
-      month - 1,
-      day,
-      endOfDay ? 23 : 0,
-      endOfDay ? 59 : 0,
-      endOfDay ? 59 : 0,
-    ).getTime()
+    const time = endOfDay ? '23:59:59' : '00:00:00'
+    return new Date(`${dateString}T${time}+03:00`).getTime()
   }
 
   const handleOpenNewForm = () => {
