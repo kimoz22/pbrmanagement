@@ -80,9 +80,23 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
     setIsFormOpen(true)
   }
 
+  const handleStatusChange = (newStatus: 'Pending' | 'Approved' | 'Rejected') => {
+    setFormData((prev) => ({
+      ...prev,
+      status: newStatus,
+      approver: newStatus !== 'Pending' ? (currentUser?.username || prev?.approver || '') : prev?.approver,
+      dateApproved: newStatus !== 'Pending' ? getTanzaniaDateTime() : prev?.dateApproved,
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const normalizedStatus = formData.status as 'Pending' | 'Approved' | 'Rejected'
+      const approverName =
+        normalizedStatus !== 'Pending'
+          ? currentUser?.username || formData.approver || ''
+          : formData.approver || ''
       const payload = {
         requestee: formData.requestee || '',
         requestedDate: getTanzaniaDateTime().getTime(),
@@ -93,10 +107,14 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
         amount: formData.amount || 0,
         reason: formData.reason || '',
         customerNo: formData.customerNo || '',
-        approver: '',
-        status: formData.status as 'Pending' | 'Approved' | 'Rejected',
+        approver: approverName,
+        status: normalizedStatus,
         approverComments: formData.approverComments || '',
-        dateApproved: formData.dateApproved ? (formData.dateApproved as Date).getTime() : undefined,
+        dateApproved:
+          formData.dateApproved && typeof formData.dateApproved !== 'number'
+            ? (formData.dateApproved as Date).getTime()
+            : (formData.dateApproved as number | undefined) ??
+              (normalizedStatus !== 'Pending' ? getTanzaniaDateTime().getTime() : undefined),
       }
       if (editingId) {
         await updateTicket({ id: editingId as any, ...payload })
@@ -139,6 +157,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
       reason: item.reason,
       customerNo: item.customerNo,
       status: item.status,
+      approver: item.approver,
       approverComments: item.approverComments,
       dateApproved: item.dateApproved ? new Date(item.dateApproved) : undefined,
     })
@@ -304,12 +323,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
               <label>Status</label>
               <select
                 value={formData.status || 'Pending'}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    status: e.target.value as 'Pending' | 'Approved' | 'Rejected',
-                  })
-                }
+                onChange={(e) => handleStatusChange(e.target.value as 'Pending' | 'Approved' | 'Rejected')}
                 disabled={viewOnly}
               >
                 {(isStaff ? ['Pending'] : ['Pending', 'Approved', 'Rejected']).map((opt) => (
@@ -369,6 +383,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
               <th>Replacement</th>
               <th>Reason</th>
               <th>Amount</th>
+              <th>Approver</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -390,6 +405,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                   <td>{item.replacement}</td>
                   <td>{item.reason || '-'}</td>
                   <td>{formatCurrency(item.amount)}</td>
+                  <td>{item.approver || '-'}</td>
                   <td>
                     <span className={`badge badge-${item.status.toLowerCase()}`}>
                       {item.status}

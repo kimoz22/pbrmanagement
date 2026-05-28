@@ -35,6 +35,7 @@ export default function SIIncrements({ currentUser }: Props) {
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All')
   const [fromDate, setFromDate] = useState(getCurrentDateValue())
   const [toDate, setToDate] = useState(getCurrentDateValue())
+  const [notification, setNotification] = useState<string | null>(null)
 
   const siIncrements = useQuery(api.siIncrements.listSIIncrements)
   const shopNames = useQuery(api.shopNames.listShopNames)
@@ -97,6 +98,39 @@ export default function SIIncrements({ currentUser }: Props) {
     return new Date(`${dateString}T${time}+03:00`).getTime()
   }
 
+  const playNotificationSound = () => {
+    try {
+      const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext
+      if (!AudioCtx) return
+      const ctx = new AudioCtx()
+      const o = ctx.createOscillator()
+      const g = ctx.createGain()
+      o.type = 'sine'
+      o.frequency.value = 880
+      g.gain.value = 0.05
+      o.connect(g)
+      g.connect(ctx.destination)
+      o.start()
+      setTimeout(() => {
+        try { o.stop() } catch (e) {}
+        try { ctx.close() } catch (e) {}
+      }, 250)
+    } catch (err) {
+      // ignore audio errors
+    }
+  }
+
+  const triggerNotification = (msg: string) => {
+    setNotification(msg)
+    try {
+      window.dispatchEvent(new CustomEvent('siIncrementSubmitted', { detail: { message: msg } }))
+    } catch (e) {
+      // ignore
+    }
+    playNotificationSound()
+    setTimeout(() => setNotification(null), 4000)
+  }
+
   const handleOpenNewForm = () => {
     setEditingId(null)
     setViewOnly(false)
@@ -108,6 +142,14 @@ export default function SIIncrements({ currentUser }: Props) {
     setShopQuery('')
     setShopDropdownOpen(false)
     setIsFormOpen(true)
+  }
+
+  const handleStatusChange = (newStatus: 'Pending' | 'Approved' | 'Rejected') => {
+    setFormData((prev) => ({
+      ...prev,
+      status: newStatus,
+      approver: newStatus === 'Rejected' ? (currentUser?.username || prev?.approver || '') : prev?.approver,
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,6 +180,8 @@ export default function SIIncrements({ currentUser }: Props) {
       } else {
         await createSIIncrement(payload)
       }
+      // notify other components and play a sound
+      triggerNotification('SI Increment submitted')
       setFormData({ status: 'Pending' })
       setEditingId(null)
       setIsFormOpen(false)
@@ -240,6 +284,9 @@ export default function SIIncrements({ currentUser }: Props) {
           </button>
         </div>
       </div>
+      {notification && (
+        <div className="toast">{notification}</div>
+      )}
 
       {isFormOpen && (
         <form onSubmit={handleSubmit} className="form-card">
@@ -307,12 +354,7 @@ export default function SIIncrements({ currentUser }: Props) {
               <label>Status</label>
               <select
                 value={formData.status || 'Pending'}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    status: e.target.value as 'Pending' | 'Approved' | 'Rejected',
-                  })
-                }
+                onChange={(e) => handleStatusChange(e.target.value as 'Pending' | 'Approved' | 'Rejected')}
                 disabled={viewOnly}
               >
                 {(isStaff ? ['Pending'] : ['Pending', 'Approved', 'Rejected']).map((opt) => (
