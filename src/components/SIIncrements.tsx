@@ -113,6 +113,12 @@ export default function SIIncrements({ currentUser }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const normalizedStatus = formData.status as 'Pending' | 'Approved' | 'Rejected'
+      const approverName =
+        normalizedStatus !== 'Pending'
+          ? currentUser?.username || formData.approver || ''
+          : formData.approver || ''
+
       const payload = {
         requestee: formData.requestee || '',
         requestedDate:
@@ -120,8 +126,8 @@ export default function SIIncrements({ currentUser }: Props) {
           getTanzaniaDateTime().getTime(),
         shopName: formData.shopName || '',
         amount: formData.amount || 0,
-        approver: formData.approver || '',
-        status: formData.status as 'Pending' | 'Approved' | 'Rejected',
+        approver: approverName,
+        status: normalizedStatus,
         approverComments: formData.approverComments || '',
         dateApproved: formData.dateApproved
           ? (formData.dateApproved as Date).getTime()
@@ -285,13 +291,17 @@ export default function SIIncrements({ currentUser }: Props) {
             </div>
             <div className="form-group">
               <label>Amount</label>
-              <input
-                type="number"
-                value={formData.amount || ''}
+              <select
+                value={formData.amount ?? ''}
                 onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
-                readOnly={viewOnly}
+                disabled={viewOnly}
                 required
-              />
+              >
+                <option value="" disabled>Select amount</option>
+                {[100000,200000,300000,400000,500000,1000000,2000000,3000000,4000000,5000000,6000000].map((value) => (
+                  <option key={value} value={value}>{new Intl.NumberFormat('en-US').format(value)}</option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
               <label>Status</label>

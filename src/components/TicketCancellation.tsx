@@ -22,6 +22,7 @@ const getCurrentDateValue = (): string => {
 
 export default function TicketCancellationComponent({ currentUser }: { currentUser?: any }) {
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [viewOnly, setViewOnly] = useState(false)
   const [formData, setFormData] = useState<Partial<TicketCancellation>>({
     status: 'Pending',
   })
@@ -37,6 +38,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
   const [editingId, setEditingId] = useState<string | null>(null)
 
   const isStaff = currentUser?.role === 'Staff'
+  const canModify = currentUser?.role && currentUser.role !== 'Staff'
 
   const getDateTimestamp = (dateString: string, endOfDay = false): number | null => {
     if (!dateString) return null
@@ -69,6 +71,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
 
   const handleOpenNewForm = () => {
     setEditingId(null)
+    setViewOnly(false)
     setFormData({
       requestee: currentUser?.username || '',
       status: 'Pending',
@@ -118,9 +121,14 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
     }
   }
 
-  const handleEdit = (item: any) => {
+  const handleView = (item: any) => {
+    handleEdit(item, true)
+  }
+
+  const handleEdit = (item: any, readOnly = false) => {
     setIsFormOpen(true)
     setEditingId(String(item._id ?? item.id))
+    setViewOnly(readOnly)
     setFormData({
       requestee: item.requestee,
       tpmNo: item.tpmNo,
@@ -142,7 +150,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
 
   const visibleItems = (tickets || []).filter((item: any) => {
     const q = searchTerm.trim().toLowerCase()
-    const matchesSearch = !q || [item.requestee, item.tpmNo, item.retailerID, item.customerNo]
+    const matchesSearch = !q || [item.requestee, item.tpmNo, item.retailerID, item.customerNo, item.toCancel, item.replacement, item.reason]
       .some((f) => (f || '').toString().toLowerCase().includes(q))
     const matchesStatus = statusFilter === 'All' || item.status === statusFilter
     const fromTimestamp = getDateTimestamp(fromDate)
@@ -204,6 +212,9 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
 
       {isFormOpen && (
         <form onSubmit={handleSubmit} className="form-card">
+          <div className="form-header">
+            <h3>{viewOnly ? 'View Ticket Cancellation' : editingId ? 'Edit Ticket Cancellation' : 'New Ticket Cancellation'}</h3>
+          </div>
           <div className="form-grid">
             <div className="form-group">
               <label>Requestee</label>
@@ -213,6 +224,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                 onChange={(e) =>
                   setFormData({ ...formData, requestee: e.target.value })
                 }
+                readOnly={viewOnly}
                 required
               />
             </div>
@@ -224,6 +236,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                 onChange={(e) =>
                   setFormData({ ...formData, tpmNo: e.target.value })
                 }
+                readOnly={viewOnly}
                 required
               />
             </div>
@@ -235,6 +248,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                 onChange={(e) =>
                   setFormData({ ...formData, retailerID: e.target.value })
                 }
+                readOnly={viewOnly}
                 required
               />
             </div>
@@ -246,6 +260,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                 onChange={(e) =>
                   setFormData({ ...formData, toCancel: e.target.value.replace(/\D/g, '') })
                 }
+                readOnly={viewOnly}
                 required
               />
             </div>
@@ -257,6 +272,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                 onChange={(e) =>
                   setFormData({ ...formData, replacement: e.target.value.replace(/\D/g, '') })
                 }
+                readOnly={viewOnly}
                 required
               />
             </div>
@@ -268,6 +284,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                 onChange={(e) =>
                   setFormData({ ...formData, amount: parseFloat(e.target.value) })
                 }
+                readOnly={viewOnly}
                 required
               />
             </div>
@@ -279,6 +296,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                 onChange={(e) =>
                   setFormData({ ...formData, customerNo: e.target.value.replace(/\D/g, '') })
                 }
+                readOnly={viewOnly}
                 required
               />
             </div>
@@ -292,6 +310,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                     status: e.target.value as 'Pending' | 'Approved' | 'Rejected',
                   })
                 }
+                disabled={viewOnly}
               >
                 {(isStaff ? ['Pending'] : ['Pending', 'Approved', 'Rejected']).map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
@@ -305,6 +324,7 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                 onChange={(e) =>
                   setFormData({ ...formData, reason: e.target.value })
                 }
+                readOnly={viewOnly}
               />
             </div>
             <div className="form-group full-width">
@@ -317,19 +337,22 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                     approverComments: e.target.value,
                   })
                 }
+                readOnly={viewOnly}
               />
             </div>
           </div>
           <div className="form-actions">
-            <button type="submit" className="btn-primary">
-              Submit
-            </button>
+            {!viewOnly && (
+              <button type="submit" className="btn-primary">
+                Submit
+              </button>
+            )}
             <button
               type="button"
               className="btn-secondary"
               onClick={() => setIsFormOpen(false)}
             >
-              Cancel
+              {viewOnly ? 'Close' : 'Cancel'}
             </button>
           </div>
         </form>
@@ -342,8 +365,9 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
               <th>Requestee</th>
               <th>Requested Date</th>
               <th>TPM No</th>
-              <th>Retailer ID</th>
-              <th>Customer No</th>
+              <th>To Cancel</th>
+              <th>Replacement</th>
+              <th>Reason</th>
               <th>Amount</th>
               <th>Status</th>
               <th>Actions</th>
@@ -362,8 +386,9 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                     })}
                   </td>
                   <td>{item.tpmNo}</td>
-                  <td>{item.retailerID}</td>
-                  <td>{item.customerNo}</td>
+                  <td>{item.toCancel}</td>
+                  <td>{item.replacement}</td>
+                  <td>{item.reason || '-'}</td>
                   <td>{formatCurrency(item.amount)}</td>
                   <td>
                     <span className={`badge badge-${item.status.toLowerCase()}`}>
@@ -373,24 +398,35 @@ export default function TicketCancellationComponent({ currentUser }: { currentUs
                   <td>
                     <button
                       className="icon-btn"
-                      title="Edit"
-                      onClick={() => handleEdit(item)}
+                      title="View"
+                      onClick={() => handleView(item)}
                     >
-                      ✏️
+                      🔍
                     </button>
-                    <button
-                      className="icon-btn delete"
-                      title="Delete"
-                      onClick={() => handleDelete(String(item._id ?? item.id))}
-                    >
-                      🗑️
-                    </button>
+                    {canModify && (
+                      <>
+                        <button
+                          className="icon-btn"
+                          title="Edit"
+                          onClick={() => handleEdit(item)}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="icon-btn delete"
+                          title="Delete"
+                          onClick={() => handleDelete(String(item._id ?? item.id))}
+                        >
+                          🗑️
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={8} className="text-center">
+                <td colSpan={9} className="text-center">
                   No Ticket Cancellations found
                 </td>
               </tr>
