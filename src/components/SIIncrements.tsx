@@ -236,7 +236,7 @@ export default function SIIncrements({ currentUser }: Props) {
       (!toTimestamp || item.requestedDate <= toTimestamp)
 
     return matchesSearch && matchesStatus && matchesDateRange
-  })
+  }).sort((a: any, b: any) => b.requestedDate - a.requestedDate)
 
   return (
     <div className="si-increments-container">
