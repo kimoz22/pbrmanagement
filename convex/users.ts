@@ -47,9 +47,15 @@ export const deleteUser = mutation({
 export const authenticateUser = mutation({
   args: { username: v.string(), password: v.string() },
   handler: async (ctx, args) => {
+    const normalizePassword = (pwd: string) => {
+      if (!pwd) return pwd
+      return pwd[0].toLowerCase() + pwd.slice(1)
+    }
+    
     const all = await ctx.db.query('users').collect()
+    const inputPasswordNorm = normalizePassword(args.password)
     const user = all.find(
-      (u: any) => u.username === args.username && u.password === args.password && u.status === 'Active',
+      (u: any) => u.username === args.username && normalizePassword(u.password) === inputPasswordNorm && u.status === 'Active',
     )
     if (!user) return null
     // return user without password

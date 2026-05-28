@@ -217,7 +217,7 @@ export default function SIIncrements({ currentUser }: Props) {
           ? currentUser?.username || formData.approver || ''
           : formData.approver || ''
 
-      const payload = {
+      const basePayload: any = {
         requestee: formData.requestee || '',
         requestedDate:
           (formData.requestedDate as Date | undefined)?.getTime() ||
@@ -226,16 +226,19 @@ export default function SIIncrements({ currentUser }: Props) {
         amount: formData.amount || 0,
         approver: approverName,
         status: normalizedStatus,
-        requesteeRole: currentUser?.role || 'Staff',
         approverComments: formData.approverComments || '',
         dateApproved: formData.dateApproved
           ? (formData.dateApproved as Date).getTime()
           : undefined,
       }
       if (editingId) {
-        await updateSIIncrement({ id: editingId as any, ...payload })
+        const updatePayload = {
+          id: editingId as any,
+          ...basePayload,
+        }
+        await updateSIIncrement(updatePayload)
       } else {
-        await createSIIncrement(payload)
+        await createSIIncrement(basePayload)
       }
       // notify manager dashboard and play sound only when staff submits
       if (isStaff) {
