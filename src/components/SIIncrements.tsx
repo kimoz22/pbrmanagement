@@ -180,8 +180,10 @@ export default function SIIncrements({ currentUser }: Props) {
       } else {
         await createSIIncrement(payload)
       }
-      // notify other components and play a sound
-      triggerNotification('SI Increment submitted')
+      // notify manager dashboard and play sound only when staff submits
+      if (isStaff) {
+        triggerNotification('SI Increment submitted')
+      }
       setFormData({ status: 'Pending' })
       setEditingId(null)
       setIsFormOpen(false)
