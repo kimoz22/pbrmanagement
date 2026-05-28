@@ -2,59 +2,145 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 1rem;
 }
 
 .header-section {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .header-section h2 {
-  font-size: 1.8rem;
-  color: #333;
+  font-size: 2rem;
+  color: #1f2937;
+  margin: 0;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+  color: #fff;
+  padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   cursor: pointer;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.header-actions .btn-primary {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.88rem;
+  min-width: 0;
+  width: auto;
+}
+
+.form-actions .btn-primary,
+.form-actions .btn-secondary {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.9rem;
+  min-width: 0;
+  width: auto;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.18);
 }
 
-.header-actions{display:flex;gap:12px;align-items:center}
-.muted{color:#666;margin:0;font-size:0.95rem}
-.search-box{display:flex;gap:8px;align-items:center}
-.search-box input{padding:8px 10px;border-radius:6px;border:1px solid #e6e6e6;width:220px}
-.search-box select{padding:8px;border-radius:6px;border:1px solid #e6e6e6;background:white}
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.muted {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.search-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.8rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.search-box input,
+.search-box select {
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #111827;
+  min-width: 180px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.search-box input:focus,
+.search-box select:focus {
+  border-color: #3b82f6;
+  background: #fff;
+  outline: none;
+}
+
+.search-box input::placeholder {
+  color: #9ca3af;
+}
 
 .toast {
   position: fixed;
   top: 1rem;
   right: 1rem;
-  background: rgba(34,34,34,0.95);
-  color: #fff;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+  color: #f8fafc;
+  padding: 0.9rem 1.2rem;
+  border-radius: 14px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.3);
   z-index: 9999;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
-.mono{font-variant-numeric:tabular-nums}
-.icon-btn{background:transparent;border:1px solid transparent;padding:6px;border-radius:6px;cursor:pointer;margin-right:6px}
-.icon-btn:hover{background:#f3f6ff}
-.icon-btn.delete{color:#b00020}
-.icon-btn.delete:hover{background:#ffecec}
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+.icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 0.55rem;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-right: 0.35rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: #eef2ff;
+  transform: translateY(-1px);
+}
+
+.icon-btn.delete {
+  color: #dc2626;
+}
+
+.icon-btn.delete:hover {
+  background: #fef2f2;
+}
 
 .btn-secondary {
   background-color: #e0e0e0;
@@ -167,36 +253,100 @@
 
 .table-responsive {
   overflow-x: auto;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 22px 45px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e5e7eb;
 }
 
 .data-table {
   width: 100%;
-  border-collapse: collapse;
+  min-width: 900px;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .data-table thead {
-  background-color: #f5f5f5;
-  border-bottom: 2px solid #ddd;
+  background-color: #eff6ff;
 }
 
 .data-table th {
-  padding: 1rem;
+  padding: 1rem 1.2rem;
   text-align: left;
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: #1f2937;
   font-size: 0.95rem;
+  letter-spacing: 0.01em;
 }
 
 .data-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
 }
 
 .data-table tbody tr:hover {
-  background-color: #fafafa;
+  background-color: #f8fbff;
+}
+
+.data-table td select,
+.data-table td input {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 0.95rem;
+  appearance: none;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.data-table td select.status-select.status-pending {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.data-table td select.status-select.status-approved {
+  border-color: #16a34a;
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.data-table td select.status-select.status-rejected {
+  border-color: #dc2626;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.data-table td select:focus,
+.data-table td input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.status-badge.status-pending {
+  background-color: #fef3cd;
+  color: #b45309;
+}
+
+.status-badge.status-approved {
+  background-color: #d1fae5;
+  color: #166534;
+}
+
+.status-badge.status-rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.data-table td .badge {
+  min-width: 98px;
+  display: inline-flex;
+  justify-content: center;
 }
 
 .badge {

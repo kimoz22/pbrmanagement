@@ -5,6 +5,7 @@ export interface SIIncrement {
   shopName: string
   amount: number
   approver: string
+  requesteeRole?: 'Admin' | 'Manager' | 'Staff'
   status: 'Pending' | 'Approved' | 'Rejected'
   approverComments?: string
   dateApproved?: Date

@@ -8,6 +8,7 @@ export default defineSchema({
     shopName: v.string(),
     amount: v.number(),
     approver: v.string(),
+    requesteeRole: v.optional(v.union(v.literal("Admin"), v.literal("Manager"), v.literal("Staff"))),
     status: v.union(v.literal("Pending"), v.literal("Approved"), v.literal("Rejected")),
     approverComments: v.optional(v.string()),
     dateApproved: v.optional(v.number()),

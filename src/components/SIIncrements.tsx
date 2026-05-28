@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { SIIncrement } from '../types'
@@ -91,11 +91,67 @@ export default function SIIncrements({ currentUser }: Props) {
   const canModify = currentUser?.role && currentUser.role !== 'Staff'
 
   const isStaff = currentUser?.role === 'Staff'
+  const isManager = currentUser?.role === 'Manager'
+  const [commentsDraft, setCommentsDraft] = useState<Record<string, string>>({})
+  const prevSIIncrementIds = useRef<string[]>([])
+  const managerNotificationEnabled = isManager
+
+  useEffect(() => {
+    if (!siIncrements) {
+      prevSIIncrementIds.current = []
+      return
+    }
+
+    const currentIds = siIncrements.map((item: any) => String(item._id ?? item.id))
+    if (managerNotificationEnabled && prevSIIncrementIds.current.length > 0) {
+      const newIds = currentIds.filter((id) => !prevSIIncrementIds.current.includes(id))
+      const newStaffRequest = newIds.some((id) => {
+        const item = siIncrements.find((entry: any) => String(entry._id ?? entry.id) === id)
+        return item?.requesteeRole === 'Staff' || item?.requestee !== currentUser?.username
+      })
+      if (newStaffRequest) {
+        triggerNotification('New SI Increment request received')
+      }
+    }
+    prevSIIncrementIds.current = currentIds
+  }, [siIncrements, currentUser?.role, currentUser?.username, managerNotificationEnabled])
 
   const getDateTimestamp = (dateString: string, endOfDay = false): number | null => {
     if (!dateString) return null
     const time = endOfDay ? '23:59:59' : '00:00:00'
     return new Date(`${dateString}T${time}+03:00`).getTime()
+  }
+
+  const handleRowStatusChange = async (item: any, newStatus: 'Pending' | 'Approved' | 'Rejected') => {
+    const now = getTanzaniaDateTime().getTime()
+    const updates: any = {
+      status: newStatus,
+    }
+    if (newStatus === 'Pending') {
+      updates.dateApproved = undefined
+    } else {
+      updates.approver = currentUser?.username || item.approver || ''
+      updates.dateApproved = now
+    }
+    try {
+      await updateSIIncrement({ id: item._id ?? item.id, ...updates })
+    } catch (error) {
+      console.error('Error updating SI Increment status:', error)
+    }
+  }
+
+  const handleRowCommentsChange = (itemId: string, value: string) => {
+    setCommentsDraft((prev) => ({ ...prev, [itemId]: value }))
+  }
+
+  const commitRowComments = async (item: any) => {
+    const itemId = String(item._id ?? item.id)
+    const comments = commentsDraft[itemId] ?? item.approverComments ?? ''
+    try {
+      await updateSIIncrement({ id: item._id ?? item.id, approverComments: comments })
+    } catch (error) {
+      console.error('Error updating SI Increment comments:', error)
+    }
   }
 
   const playNotificationSound = () => {
@@ -170,6 +226,7 @@ export default function SIIncrements({ currentUser }: Props) {
         amount: formData.amount || 0,
         approver: approverName,
         status: normalizedStatus,
+        requesteeRole: currentUser?.role || 'Staff',
         approverComments: formData.approverComments || '',
         dateApproved: formData.dateApproved
           ? (formData.dateApproved as Date).getTime()
@@ -213,6 +270,7 @@ export default function SIIncrements({ currentUser }: Props) {
       amount: item.amount,
       approver: item.approver,
       status: item.status,
+      requesteeRole: item.requesteeRole,
       approverComments: item.approverComments,
       dateApproved: item.dateApproved ? new Date(item.dateApproved) : undefined,
     })
@@ -420,11 +478,35 @@ export default function SIIncrements({ currentUser }: Props) {
                   <td>{formatCurrency(item.amount)}</td>
                   <td>{item.approver || '-'}</td>
                   <td>
-                    <span className={`badge badge-${item.status.toLowerCase()}`}>
-                      {item.status}
-                    </span>
+                    {isManager ? (
+                      <select
+                        className={`status-select status-${item.status.toLowerCase()}`}
+                        value={item.status}
+                        onChange={(e) => handleRowStatusChange(item, e.target.value as 'Pending' | 'Approved' | 'Rejected')}
+                      >
+                        {['Pending', 'Approved', 'Rejected'].map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className={`badge badge-${item.status.toLowerCase()} status-badge status-${item.status.toLowerCase()}`}>
+                        {item.status}
+                      </span>
+                    )}
                   </td>
-                  <td>{item.approverComments || '-'}</td>
+                  <td>
+                    {isManager ? (
+                      <input
+                        type="text"
+                        value={commentsDraft[String(item._id ?? item.id)] ?? item.approverComments ?? ''}
+                        onChange={(e) => handleRowCommentsChange(String(item._id ?? item.id), e.target.value)}
+                        onBlur={() => commitRowComments(item)}
+                        placeholder="Manager comments"
+                      />
+                    ) : (
+                      item.approverComments || '-'
+                    )}
+                  </td>
                   <td>
                     <button
                       className="icon-btn"
